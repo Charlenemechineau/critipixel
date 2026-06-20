@@ -20,34 +20,58 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/', name: 'video_games_')]
 final class VideoGameController extends AbstractController
 {
+
+    // Cette méthode permet de lister les jeux vidéo avec pagination et de gérer la requête HTTP pour afficher la liste des jeux vidéo//
     #[Route(name: 'list', methods: [Request::METHOD_GET])]
     public function list(
         #[ValueResolver('pagination')]
-        Pagination $pagination,
-        Request $request,
+        Pagination  $pagination,
+        Request     $request,
         ListFactory $listFactory,
-    ): Response {
+    ): Response
+    {
         $videoGamesList = $listFactory->createVideoGamesList($pagination)->handleRequest($request);
 
         return $this->render('views/video_games/list.html.twig', ['list' => $videoGamesList]);
     }
 
+    // Cette méthode permet d'afficher la fiche d'un jeu vidéo
+   // et de gérer l'ajout d'un avis (review) par un utilisateur.
     #[Route('{slug}', name: 'show', methods: [Request::METHOD_GET, Request::METHOD_POST])]
     public function show(VideoGame $videoGame, EntityManagerInterface $entityManager, Request $request): Response
     {
+        // Création d'une nouvelle review vide qui sera remplie par le formulaire
         $review = new Review();
 
+        // Création du formulaire d'ajout d'avis et récupération des données envoyées
         $form = $this->createForm(ReviewType::class, $review)->handleRequest($request);
 
+        // Vérifie que le formulaire a été envoyé et que les données sont valides
         if ($form->isSubmitted() && $form->isValid()) {
+
+            // Vérifie que l'utilisateur a le droit de laisser un avis sur ce jeu vidéo
             $this->denyAccessUnlessGranted('review', $videoGame);
+
+            // Associe l'avis au jeu vidéo concerné
             $review->setVideoGame($videoGame);
+
+            // Associe l'avis à l'utilisateur connecté
             $review->setUser($this->getUser());
+
+            // Prépare l'enregistrement en base de données
             $entityManager->persist($review);
+
+            // Exécute réellement l'insertion en base de données
             $entityManager->flush();
+
+            // Redirige l'utilisateur vers la fiche du jeu vidéo après l'ajout de l'avis
             return $this->redirectToRoute('video_games_show', ['slug' => $videoGame->getSlug()]);
         }
 
-        return $this->render('views/video_games/show.html.twig', ['video_game' => $videoGame, 'form' => $form]);
+        // Affiche la page du jeu vidéo ainsi que le formulaire d'ajout d'avis
+        return $this->render('views/video_games/show.html.twig', [
+            'video_game' => $videoGame,
+            'form' => $form
+        ]);
     }
 }

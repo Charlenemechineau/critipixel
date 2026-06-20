@@ -11,7 +11,6 @@ use Symfony\Component\Form\Extension\Core\Type\RangeType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-
 final class ReviewType extends AbstractType
 {
     public function configureOptions(OptionsResolver $resolver): void
