@@ -37,9 +37,9 @@ final class AddReviewTest extends FunctionalTestCase
         $this->client->followRedirect();
 
         // Assert : je vérifie que mon avis apparaît bien dans la page
-        self::assertSelectorTextContains('body', 'user+5');
-        self::assertSelectorTextContains('body', 'Mon commentaire');
-        self::assertSelectorTextContains('body', '4');
+        self::assertSelectorTextContains('body', 'user+5'); // je vérifie que le pseudo de l'utilisateur est affiché//
+        self::assertSelectorTextContains('body', 'Mon commentaire'); // je vérifie que le commentaire est affiché//
+        self::assertSelectorTextContains('body', '4'); // je vérifie que la note est affichée//
     }
 
     // méthode pour tester que le formulaire d'ajout d'avis
