@@ -1,23 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Doctrine\DataFixtures;
 
 use App\Model\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use function array_fill_callback;
 
 final class UserFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        $users = array_fill_callback(0, 10, fn (int $index): User => (new User)
-            ->setEmail(sprintf('user+%d@email.com', $index))
-            ->setPlainPassword('password')
-            ->setUsername(sprintf('user+%d', $index))
-        );
+        // Je crée 10 utilisateurs de test.
+        for ($index = 0; $index < 10; ++$index) {
+            $user = (new User())
+                ->setEmail(sprintf('user+%d@email.com', $index))
+                ->setPlainPassword('password')
+                ->setUsername(sprintf('user+%d', $index));
 
-        array_walk($users, [$manager, 'persist']);
+            $manager->persist($user);
+        }
 
         $manager->flush();
     }

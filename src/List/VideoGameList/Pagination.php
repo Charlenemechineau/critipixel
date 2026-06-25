@@ -15,7 +15,7 @@ use RuntimeException;
 use Traversable;
 
 /**
- * @implements IteratorAggregate<Page>
+ * @implements IteratorAggregate<int, Page>
  */
 final class Pagination implements IteratorAggregate, Countable
 {
@@ -25,10 +25,11 @@ final class Pagination implements IteratorAggregate, Countable
 
     private int $count;
 
+
     /**
-     * @var Page[]
+     * @var array<int, Page>
      */
-    private array $pages;
+    private array $pages = [];
 
     public function __construct(
         private int $page,
@@ -67,7 +68,7 @@ final class Pagination implements IteratorAggregate, Countable
     }
 
     /**
-     * @return Traversable<string, int>
+     * @return Traversable<int, Page>
      */
     public function getIterator(): Traversable
     {
@@ -101,12 +102,16 @@ final class Pagination implements IteratorAggregate, Countable
     {
         return $this->limit;
     }
-
+    /**
+     * @return array<int, Direction>
+     */
     public function getDirections(): array
     {
         return Direction::cases();
     }
-
+    /**
+     * @return array<int, Sorting>
+     */
     public function getAllSorting(): array
     {
         return Sorting::cases();

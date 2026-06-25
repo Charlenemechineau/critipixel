@@ -47,6 +47,12 @@ final class FilterTest extends FunctionalTestCase
 
     // Ce DataProvider permet de lancer plusieurs fois le même test
     // avec des données différentes.
+    /**
+     * @return iterable<string, array{
+     *     0: array<int, string>,
+     *     1: int
+     * }>
+     */
     public static function provideTagFilters(): iterable
     {
         // Cas où aucun tag n'est sélectionné.
@@ -57,7 +63,7 @@ final class FilterTest extends FunctionalTestCase
 
         // Cas où un tag existant est sélectionné.
         yield 'un tag existant' => [
-            ['451'],
+            ['476'],
             2,
         ];
     }
@@ -65,7 +71,7 @@ final class FilterTest extends FunctionalTestCase
     /**
      * Le DataProvider exécute automatiquement ce test
      * pour chaque jeu de données défini ci-dessus.
-     *
+     * @param array<int, string> $tags
      * @dataProvider provideTagFilters
      */
     public function testShouldFilterVideoGamesByTags(

@@ -9,6 +9,7 @@ use App\List\ListFactory;
 use App\List\VideoGameList\Pagination;
 use App\Model\Entity\Review;
 use App\Model\Entity\VideoGame;
+use App\Model\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -56,7 +57,13 @@ final class VideoGameController extends AbstractController
             $review->setVideoGame($videoGame);
 
             // Associe l'avis à l'utilisateur connecté
-            $review->setUser($this->getUser());
+            $user = $this->getUser();
+
+            if (!$user instanceof User) {
+                throw $this->createAccessDeniedException();
+            }
+
+            $review->setUser($user);
 
             // Prépare l'enregistrement en base de données
             $entityManager->persist($review);
