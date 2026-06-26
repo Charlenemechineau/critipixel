@@ -8,30 +8,30 @@ use App\Tests\Functional\FunctionalTestCase;
 
 final class FilterTest extends FunctionalTestCase
 {
-    // Ce test vérifie que la page d'accueil affiche bien les 10 premiers jeux vidéo.
+    // Ce test vérifie que la page d'accueil affiche
+    // bien les 10 premiers jeux vidéo.
     public function testShouldListTenVideoGames(): void
     {
         // J'ouvre la page d'accueil.
         $this->get('/');
 
-        // Je vérifie que la page s'est chargée correctement (code HTTP 200).
+        // Je vérifie que la page est bien accessible (HTTP 200).
         self::assertResponseIsSuccessful();
 
         // Je vérifie que 10 cartes de jeux vidéo sont affichées.
         self::assertSelectorCount(10, 'article.game-card');
     }
 
-    // Ce test vérifie que la recherche fonctionne correctement.
+    // Ce test vérifie que la recherche par nom fonctionne correctement.
     public function testShouldFilterVideoGamesBySearch(): void
     {
         // J'ouvre la page d'accueil.
         $this->get('/');
 
-        // Je vérifie que la page est bien accessible.
+        // Je vérifie que la page est bien chargée.
         self::assertResponseIsSuccessful();
 
-        // Je remplis automatiquement le champ de recherche
-        // avec "Jeu vidéo 49" puis je clique sur le bouton "Filtrer".
+        // Je remplis le champ de recherche puis j'envoie le formulaire.
         $this->client->submitForm(
             'Filtrer',
             ['filter[search]' => 'Jeu vidéo 49'],
@@ -45,79 +45,76 @@ final class FilterTest extends FunctionalTestCase
         self::assertSelectorCount(1, 'article.game-card');
     }
 
-    // Ce DataProvider permet de lancer plusieurs fois le même test
-    // avec des données différentes.
-    /**
-     * @return iterable<string, array{
-     *     0: array<int, string>,
-     *     1: int
-     * }>
-     */
-    public static function provideTagFilters(): iterable
+    // Ce test vérifie que si aucun tag n'est sélectionné,
+    // tous les jeux vidéo sont affichés.
+    public function testShouldListVideoGamesWithoutTagFilter(): void
     {
-        // Cas où aucun tag n'est sélectionné.
-        yield 'aucun tag' => [
-            [],
-            10,
-        ];
-
-        // Cas où un tag existant est sélectionné.
-        yield 'un tag existant' => [
-            ['476'],
-            2,
-        ];
-    }
-
-    /**
-     * Le DataProvider exécute automatiquement ce test
-     * pour chaque jeu de données défini ci-dessus.
-     * @param array<int, string> $tags
-     * @dataProvider provideTagFilters
-     */
-    public function testShouldFilterVideoGamesByTags(
-        array $tags,
-        int $expectedCount
-    ): void {
         // J'ouvre la page d'accueil.
         $this->get('/');
+
+        // Je vérifie que la page est bien accessible.
+        self::assertResponseIsSuccessful();
+
+        // J'envoie le formulaire sans sélectionner de tag.
+        $this->client->submitForm('Filtrer', [], 'GET');
+
+        // Je vérifie que la page est toujours accessible.
+        self::assertResponseIsSuccessful();
+
+        // Je vérifie que les 10 jeux vidéo de la première page sont affichés.
+        self::assertSelectorCount(10, 'article.game-card');
+    }
+
+    // Ce test vérifie que le filtre par tag fonctionne correctement.
+    public function testShouldFilterVideoGamesByExistingTag(): void
+    {
+        // J'ouvre la page d'accueil et je récupère son contenu.
+        $crawler = $this->get('/');
 
         // Je vérifie que la page est bien chargée.
         self::assertResponseIsSuccessful();
 
-        // Je prépare les données qui seront envoyées dans le formulaire.
-        $data = [];
+        // Je récupère automatiquement la valeur du premier tag
+        // affiché dans le formulaire.
+        // Cela évite d'utiliser un identifiant en dur qui peut
+        // être différent selon les environnements (local, GitHub...).
+        $tagValue = $crawler
+            ->filter('input[name="filter[tags][]"]')
+            ->first()
+            ->attr('value');
 
-        // Pour chaque tag, je crée le champ attendu par le formulaire.
-        foreach ($tags as $index => $tag) {
-            $data["filter[tags][$index]"] = $tag;
-        }
+        // Je vérifie qu'une valeur de tag a bien été trouvée.
+        self::assertNotNull($tagValue);
 
-        // J'envoie le formulaire avec les tags sélectionnés.
-        $this->client->submitForm('Filtrer', $data, 'GET');
+        // J'envoie le formulaire avec le tag récupéré.
+        $this->client->submitForm('Filtrer', [
+            'filter[tags]' => [$tagValue],
+        ], 'GET');
 
-        // Je vérifie que la page s'affiche correctement.
+        // Je vérifie que la page est bien affichée.
         self::assertResponseIsSuccessful();
 
-        // Je vérifie que le nombre de jeux vidéo affichés
-        // correspond au résultat attendu.
-        self::assertSelectorCount($expectedCount, 'article.game-card');
+        // Je vérifie que seuls les jeux vidéo liés à ce tag sont affichés.
+        self::assertSelectorCount(2, 'article.game-card');
     }
 
-    // Ce test vérifie le comportement lorsqu'un tag qui n'existe pas est envoyé.
+    // Ce test vérifie le comportement lorsqu'un tag inexistant
+    // est envoyé dans l'URL.
     public function testShouldReturnVideoGamesWithUnknownTag(): void
     {
-        // J'appelle directement l'URL avec un tag inexistant.
+        // J'appelle directement l'URL avec un identifiant de tag
+        // qui n'existe pas.
         $this->get('/', [
             'filter' => [
                 'tags' => ['9999'],
             ],
         ]);
 
-        // Je vérifie que la page ne génère pas d'erreur.
+        // Je vérifie que la page ne renvoie pas d'erreur.
         self::assertResponseIsSuccessful();
 
-        // Dans cette application, un tag inconnu affiche
-        // la liste complète des jeux vidéo.
+        // Je vérifie que l'application affiche la liste complète
+        // des jeux vidéo lorsqu'aucun tag valide n'est trouvé.
         self::assertSelectorCount(10, 'article.game-card');
     }
 }
