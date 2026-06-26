@@ -1,0 +1,55 @@
+name: CritiPixel CI
+
+on:
+  push:
+    branches:
+      - main
+      - p14-exercice-2
+
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: Admin123
+          POSTGRES_DB: criti_pixel
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      APP_ENV: test
+      DATABASE_URL: "postgresql://postgres:Admin123@127.0.0.1:5432/criti_pixel?serverVersion=17&charset=utf8"
+
+    steps:
+      - name: Checkout du projet
+        uses: actions/checkout@v4
+
+      - name: Installation de PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, intl, pgsql, pdo_pgsql
+          coverage: none
+
+      - name: Installation des dépendances
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Préparation de la base de test
+        run: composer db-test
+
+      - name: Analyse statique avec PHPStan
+        run: php -d memory_limit=1G vendor/bin/phpstan analyse
+
+      - name: Exécution des tests PHPUnit
+        run: vendor/bin/phpunit
