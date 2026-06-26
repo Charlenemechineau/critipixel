@@ -30,6 +30,9 @@ jobs:
     env:
       APP_ENV: test
       DATABASE_URL: "postgresql://postgres:Admin123@127.0.0.1:5432/criti_pixel?serverVersion=17.0&charset=utf8"
+      SYMFONY_PHPUNIT_LOCALE: fr_FR
+      LANG: fr_FR.UTF-8
+      LC_ALL: fr_FR.UTF-8
 
     steps:
       - name: Checkout du projet
