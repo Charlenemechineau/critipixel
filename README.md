@@ -2,6 +2,12 @@
 
 # CritiPixel
 
+## Information
+Le projet est organisé sur deux branches :
+
+- **main** : contient l'exercice 1.
+- **p14-exercice-2** : contient l'exercice 2, avec la mise en place des tests unitaires, des tests fonctionnels et de la pipeline GitHub Actions.
+- 
 ## Pré-requis
 * PHP >= 8.2
 * Composer
